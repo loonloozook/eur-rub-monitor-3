@@ -1,23 +1,23 @@
-# 1. Берем базовый Python
+# 1. Базовый образ Python
 FROM python:3.9-slim
 
-# 2. Устанавливаем системные утилиты и Google Chrome
-RUN apt-get update && apt-get install -y wget gnupg unzip curl && \
-    wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-    sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' && \
-    apt-get update && \
-    apt-get install -y google-chrome-stable && \
+# 2. Устанавливаем wget (качалку) и сам Google Chrome напрямую через .deb файл
+# Это позволяет избежать возни с GPG-ключами и apt-key
+RUN apt-get update && apt-get install -y wget && \
+    wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    apt-get install -y ./google-chrome-stable_current_amd64.deb && \
+    rm google-chrome-stable_current_amd64.deb && \
     apt-get clean
 
-# 3. Настраиваем рабочую папку
+# 3. Рабочая папка
 WORKDIR /app
 
 # 4. Копируем файлы
 COPY . .
 
-# 5. Устанавливаем библиотеки Python
+# 5. Ставим библиотеки
 RUN pip install -r requirements.txt
 
-# 6. Команда запуска (порт 80 для Timeweb важен)
+# 6. Запускаем
 EXPOSE 80
 CMD ["streamlit", "run", "app.py", "--server.port=80", "--server.address=0.0.0.0"]
